@@ -96,7 +96,7 @@ export default {
     }
 
     const pdfSection = safePdfUrl
-      ? `<p style="margin:16px 0"><a href="${escapeHtml(safePdfUrl)}" style="background:#2563eb;color:#fff;padding:10px 20px;border-radius:6px;text-decoration:none;font-weight:600">📄 Descargar PDF</a></p>`
+      ? `<p style="margin:16px 0"><a href="${safePdfUrl}" style="background:#2563eb;color:#fff;padding:10px 20px;border-radius:6px;text-decoration:none;font-weight:600">📄 Descargar PDF</a></p>`
       : '';
 
     const htmlBody = `<!doctype html>
