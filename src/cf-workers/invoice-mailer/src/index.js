@@ -23,6 +23,18 @@
 
 export default {
   async fetch(request, env) {
+    const { pathname } = new URL(request.url);
+
+    if (request.method === 'GET' && pathname === '/health') {
+      return new Response(JSON.stringify({ ok: true, worker: 'invoice-mailer' }), {
+        status: 200,
+        headers: { 'Content-Type': 'application/json' },
+      });
+    }
+    if (pathname !== '/notify') {
+      return new Response('Not Found', { status: 404 });
+    }
+
     if (request.method !== 'POST') {
       return new Response('Method Not Allowed', { status: 405 });
     }
@@ -57,8 +69,34 @@ export default {
       minimumFractionDigits: 2,
     });
 
-    const pdfSection = pdfUrl
-      ? `<p style="margin:16px 0"><a href="${pdfUrl}" style="background:#2563eb;color:#fff;padding:10px 20px;border-radius:6px;text-decoration:none;font-weight:600">📄 Descargar PDF</a></p>`
+    const escapeHtml = (value) => String(value ?? '')
+      .replaceAll('&', '&amp;')
+      .replaceAll('<', '&lt;')
+      .replaceAll('>', '&gt;')
+      .replaceAll('"', '&quot;')
+      .replaceAll("'", '&#39;');
+
+    const safeTenantName = escapeHtml(tenantName);
+    const safeRecipientName = escapeHtml(recipientName);
+    const safeTipoCfeLabel = escapeHtml(tipoCfeLabel);
+    const safeInvoiceId = escapeHtml(invoiceId);
+    const safeInvoiceNumber = escapeHtml(invoiceNumber);
+    const safeFormattedTotal = escapeHtml(formattedTotal);
+
+    let safePdfUrl = '';
+    if (typeof pdfUrl === 'string' && pdfUrl.trim()) {
+      try {
+        const parsed = new URL(pdfUrl);
+        if (parsed.protocol === 'http:' || parsed.protocol === 'https:') {
+          safePdfUrl = parsed.toString();
+        }
+      } catch {
+        safePdfUrl = '';
+      }
+    }
+
+    const pdfSection = safePdfUrl
+      ? `<p style="margin:16px 0"><a href="${escapeHtml(safePdfUrl)}" style="background:#2563eb;color:#fff;padding:10px 20px;border-radius:6px;text-decoration:none;font-weight:600">📄 Descargar PDF</a></p>`
       : '';
 
     const htmlBody = `<!doctype html>
@@ -66,26 +104,26 @@ export default {
 <body style="font-family:system-ui,sans-serif;color:#0f172a;max-width:560px;margin:0 auto;padding:24px">
   <div style="background:#eff6ff;border:1px solid #bfdbfe;border-radius:12px;padding:24px;margin-bottom:20px">
     <h1 style="margin:0 0 4px;font-size:20px">🧾 Nuevo comprobante emitido</h1>
-    <p style="margin:0;color:#64748b;font-size:14px">${tenantName}</p>
+    <p style="margin:0;color:#64748b;font-size:14px">${safeTenantName}</p>
   </div>
 
-  <p>Hola <strong>${recipientName}</strong>,</p>
+  <p>Hola <strong>${safeRecipientName}</strong>,</p>
   <p>Se emitió el siguiente comprobante fiscal:</p>
 
   <table style="width:100%;border-collapse:collapse;font-size:14px;margin:16px 0">
     <tr style="background:#f8fafc"><td style="padding:10px 12px;border:1px solid #e2e8f0;font-weight:600">Tipo</td>
-      <td style="padding:10px 12px;border:1px solid #e2e8f0">${tipoCfeLabel}</td></tr>
+      <td style="padding:10px 12px;border:1px solid #e2e8f0">${safeTipoCfeLabel}</td></tr>
     <tr><td style="padding:10px 12px;border:1px solid #e2e8f0;font-weight:600">Número</td>
-      <td style="padding:10px 12px;border:1px solid #e2e8f0">${invoiceNumber}</td></tr>
+      <td style="padding:10px 12px;border:1px solid #e2e8f0">${safeInvoiceNumber}</td></tr>
     <tr style="background:#f8fafc"><td style="padding:10px 12px;border:1px solid #e2e8f0;font-weight:600">Total</td>
-      <td style="padding:10px 12px;border:1px solid #e2e8f0;font-weight:700;color:#16a34a">${formattedTotal}</td></tr>
+      <td style="padding:10px 12px;border:1px solid #e2e8f0;font-weight:700;color:#16a34a">${safeFormattedTotal}</td></tr>
   </table>
 
   ${pdfSection}
 
   <hr style="border:none;border-top:1px solid #e2e8f0;margin:24px 0">
   <p style="font-size:12px;color:#64748b">Este email fue generado automáticamente por <strong>UruErp</strong>.
-    ID interno: ${invoiceId}</p>
+    ID interno: ${safeInvoiceId}</p>
 </body></html>`;
 
     // ── Send via MailChannels API ─────────────────────────────────────────

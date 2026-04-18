@@ -21,9 +21,22 @@ var databaseUrl = Environment.GetEnvironmentVariable("DATABASE_URL");
 if (!string.IsNullOrEmpty(databaseUrl))
 {
     var uri = new Uri(databaseUrl);
-    var userInfo = uri.UserInfo.Split(':', 2);
-    var connStr = $"Host={uri.Host};Port={uri.Port};Database={uri.AbsolutePath.TrimStart('/')};Username={userInfo[0]};Password={userInfo[1]};SSL Mode=Require;Trust Server Certificate=true";
-    builder.Services.AddDbContext<AppDbContext>(opts => opts.UseNpgsql(connStr));
+    var separatorIndex = uri.UserInfo.IndexOf(':');
+    var encodedUsername = separatorIndex >= 0 ? uri.UserInfo[..separatorIndex] : uri.UserInfo;
+    var encodedPassword = separatorIndex >= 0 ? uri.UserInfo[(separatorIndex + 1)..] : string.Empty;
+
+    var connStrBuilder = new Npgsql.NpgsqlConnectionStringBuilder
+    {
+        Host = uri.Host,
+        Port = uri.Port,
+        Database = uri.AbsolutePath.TrimStart('/'),
+        Username = Uri.UnescapeDataString(encodedUsername),
+        Password = Uri.UnescapeDataString(encodedPassword),
+        SslMode = Npgsql.SslMode.Require,
+        TrustServerCertificate = true
+    };
+
+    builder.Services.AddDbContext<AppDbContext>(opts => opts.UseNpgsql(connStrBuilder.ConnectionString));
 }
 else
 {
@@ -53,7 +66,9 @@ builder.Services.AddScoped<JwtService>();
 // R2 is optional; if CloudflareR2:AccountId is missing the service won't be
 // registered and R2 uploads will be skipped.
 var r2Configured = !string.IsNullOrWhiteSpace(builder.Configuration["CloudflareR2:AccountId"])
-                && !string.IsNullOrWhiteSpace(builder.Configuration["CloudflareR2:AccessKeyId"]);
+                && !string.IsNullOrWhiteSpace(builder.Configuration["CloudflareR2:AccessKeyId"])
+                && !string.IsNullOrWhiteSpace(builder.Configuration["CloudflareR2:SecretAccessKey"])
+                && !string.IsNullOrWhiteSpace(builder.Configuration["CloudflareR2:BucketName"]);
 if (r2Configured)
     builder.Services.AddSingleton<CloudflareR2Service>();
 
@@ -62,11 +77,15 @@ builder.Services.AddHttpClient("InvoiceMailer");
 builder.Services.AddScoped<InvoiceMailerService>();
 
 // ── CORS ────────────────────────────────────────────────────────────────────
+var allowedOrigins = builder.Configuration["AllowedOrigins"]?
+    .Split(',', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries);
+
 builder.Services.AddCors(o =>
     o.AddDefaultPolicy(p => p
         .WithOrigins(
-            builder.Configuration["AllowedOrigins"]?.Split(',')
-            ?? ["http://localhost:5173"])
+            allowedOrigins is { Length: > 0 }
+                ? allowedOrigins
+                : ["http://localhost:5173"])
         .AllowAnyHeader()
         .AllowAnyMethod()));
 
@@ -74,7 +93,13 @@ var app = builder.Build();
 
 // ── Schema migration ────────────────────────────────────────────────────────
 using (var scope = app.Services.CreateScope())
-    await scope.ServiceProvider.GetRequiredService<AppDbContext>().Database.EnsureCreatedAsync();
+{
+    var db = scope.ServiceProvider.GetRequiredService<AppDbContext>();
+    if (app.Environment.IsDevelopment())
+        await db.Database.EnsureCreatedAsync();
+    else
+        await db.Database.MigrateAsync();
+}
 
 app.UseCors();
 app.UseAuthentication();

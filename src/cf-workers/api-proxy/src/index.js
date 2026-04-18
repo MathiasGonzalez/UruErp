@@ -31,16 +31,17 @@ app.use('*', async (c, next) => {
   const allowedOrigins = rawOrigins
     ? rawOrigins.split(',').map((o) => o.trim()).filter(Boolean)
     : ['*']
+  const usesWildcardOrigin = allowedOrigins.length === 1 && allowedOrigins[0] === '*'
 
   const corsMiddleware = cors({
-    origin: allowedOrigins.length === 1 && allowedOrigins[0] === '*'
+    origin: usesWildcardOrigin
       ? '*'
       : (origin) => (allowedOrigins.includes(origin) ? origin : allowedOrigins[0]),
     allowMethods: ['GET', 'POST', 'PUT', 'PATCH', 'DELETE', 'OPTIONS'],
     allowHeaders: ['Content-Type', 'Authorization'],
     exposeHeaders: ['Content-Length', 'Content-Type'],
     maxAge: 86400,
-    credentials: true,
+    credentials: !usesWildcardOrigin,
   })
 
   return corsMiddleware(c, next)

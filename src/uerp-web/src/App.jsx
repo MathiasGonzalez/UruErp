@@ -26,7 +26,7 @@ function AppShell({ token, onLogout }) {
         apiFetch('/api/invoices'),
         apiFetch('/api/dashboard'),
         apiFetch('/api/config/status'),
-        fetch('/api/cfe-types'),
+        apiFetch('/api/cfe-types'),
       ])
       if (invRes.ok)     setInvoices(await invRes.json())
       if (dashRes.ok)    setDashboard(await dashRes.json())
