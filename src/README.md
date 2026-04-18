@@ -1,6 +1,6 @@
 # UruErp
 
-Aplicación ERP multi-tenant construida sobre el **UruFactura SDK**.
+Aplicación ERP multi-tenant construida sobre el **[UruFactura SDK](https://github.com/MathiasGonzalez/UruFacturaSDK/)**.
 Permite a múltiples empresas emitir, firmar y gestionar sus CFE (Comprobantes Fiscales Electrónicos) desde un único portal web.
 
 ## Stack
@@ -293,4 +293,3 @@ Todos los endpoints protegidos requieren el header `Authorization: Bearer <token
 - El esquema se crea con `EnsureCreated()` en la primera ejecución. Para producción usá migraciones EF Core.
 - El envío a DGI (`EnviarCfeAsync`) no está incluido; ver `UruFacturaClient` en el SDK.
 - La DGI **no acepta** certificados autofirmados; para homologación obtené el certificado oficial en [DGI](https://www.dgi.gub.uy).
-

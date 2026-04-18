@@ -23,18 +23,7 @@ jobs:
           dotnet-version: '10.0.x'
 
       - name: Restore dependencies
-        run: dotnet restore UruFacturaSDK.slnx
+        run: dotnet restore src/UruErpApp.Api/UruErpApp.Api.csproj
 
       - name: Build
-        run: dotnet build UruFacturaSDK.slnx --no-restore --configuration Release
-
-      - name: Test
-        run: dotnet test UruFacturaSDK.slnx --no-build --configuration Release --verbosity normal --collect:"XPlat Code Coverage" --settings tests/UruFacturaSDK.Tests/coverlet.runsettings
-
-      - name: Upload coverage reports
-        uses: actions/upload-artifact@v4
-        if: always()
-        with:
-          name: coverage-report
-          path: '**/coverage.cobertura.xml'
-          retention-days: 7
+        run: dotnet build src/UruErpApp.Api/UruErpApp.Api.csproj --no-restore --configuration Release
