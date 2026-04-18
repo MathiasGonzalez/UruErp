@@ -84,9 +84,10 @@ export default {
     const safeFormattedTotal = escapeHtml(formattedTotal);
 
     let safePdfUrl = '';
-    if (typeof pdfUrl === 'string' && pdfUrl.trim()) {
+    const trimmedPdfUrl = typeof pdfUrl === 'string' ? pdfUrl.trim() : '';
+    if (/^https?:\/\//i.test(trimmedPdfUrl)) {
       try {
-        const parsed = new URL(pdfUrl);
+        const parsed = new URL(trimmedPdfUrl);
         if (parsed.protocol === 'http:' || parsed.protocol === 'https:') {
           safePdfUrl = parsed.toString();
         }
