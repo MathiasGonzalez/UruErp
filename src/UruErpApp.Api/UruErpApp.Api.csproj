@@ -12,8 +12,6 @@
       <PrivateAssets>all</PrivateAssets>
       <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
     </PackageReference>
-  </ItemGroup>
-  <ItemGroup>
-    <ProjectReference Include="../../src/UruFacturaSDK/UruFacturaSDK.csproj" />
+    <PackageReference Include="UruFacturaSDK" Version="1.0.0" />
   </ItemGroup>
 </Project>
