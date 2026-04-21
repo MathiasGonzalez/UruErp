@@ -112,7 +112,7 @@ necesita levantar el Worker `api-proxy`.
 2. Agrega un servicio **PostgreSQL** (el plugin oficial de Railway).
 3. Agrega un servicio **Docker** apuntando a este repositorio con:
    - **Root Directory**: `/` (raíz del repo)
-    - **Dockerfile Path**: `src/UruErpApp.Api/Dockerfile`
+   - **Dockerfile Path**: `src/UruErpApp.Api/Dockerfile`
 4. Configura las variables de entorno del servicio (ver tabla abajo).
 5. El workflow `.github/workflows/deploy-api-railway.yml` automatiza los despliegues
    con cada push a `main`.
