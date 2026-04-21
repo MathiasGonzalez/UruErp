@@ -8,11 +8,13 @@ on:
     paths:
       - "src/**"
       - "tests/**"
+      - "pgbouncer/**"
   pull_request:
     branches: ["main"]
     paths:
       - "src/**"
       - "tests/**"
+      - "pgbouncer/**"
 
   # Allow manual runs from the Actions tab.
   workflow_dispatch:
@@ -68,3 +70,24 @@ jobs:
         # VITE_API_URL is intentionally left empty here – CI only checks
         # that the build succeeds.  Set it to your Railway URL in the deploy job.
         run: npm run build
+
+  # ── PgBouncer Docker build ─────────────────────────────────────────────────
+  pgbouncer:
+    name: Build PgBouncer Docker image
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+
+      - name: Build (no push)
+        uses: docker/build-push-action@v6
+        with:
+          context: pgbouncer
+          file: pgbouncer/Dockerfile
+          push: false
