@@ -52,6 +52,7 @@ jobs:
   validate-secrets:
     name: Validate required secrets
     runs-on: ubuntu-latest
+    permissions: {}
     steps:
       - name: Check secrets
         env:
