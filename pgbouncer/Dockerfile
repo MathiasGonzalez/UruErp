@@ -32,14 +32,14 @@
 
 FROM alpine:3.20
 
-RUN apk add --no-cache pgbouncer
+RUN apk add --no-cache pgbouncer \
+    && (getent group pgbouncer  > /dev/null 2>&1 || addgroup -S pgbouncer) \
+    && (getent passwd pgbouncer > /dev/null 2>&1 || adduser  -S -G pgbouncer -H -h /var/run/pgbouncer pgbouncer) \
+    && mkdir -p /etc/pgbouncer /var/log/pgbouncer /var/run/pgbouncer \
+    && chown -R pgbouncer:pgbouncer /etc/pgbouncer /var/log/pgbouncer /var/run/pgbouncer
 
 COPY entrypoint.sh /entrypoint.sh
 RUN chmod +x /entrypoint.sh
-
-# Configuration directory expected by the entrypoint
-RUN mkdir -p /etc/pgbouncer /var/log/pgbouncer /var/run/pgbouncer \
-    && chown -R pgbouncer:pgbouncer /etc/pgbouncer /var/log/pgbouncer /var/run/pgbouncer
 
 EXPOSE 5432
 
