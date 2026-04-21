@@ -1,18 +1,16 @@
 name: UruErp CI
 
-# Runs on every push / PR that touches the uerp/ directory or the SDK source.
+# Runs on every push / PR that touches the app source.
 # Does NOT deploy – this is a pure build + test gate.
 on:
   push:
     branches: ["main"]
     paths:
-      - "uerp/**"
       - "src/**"
       - "tests/**"
   pull_request:
     branches: ["main"]
     paths:
-      - "uerp/**"
       - "src/**"
       - "tests/**"
 

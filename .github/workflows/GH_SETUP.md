@@ -254,7 +254,7 @@ Este workflow no requiere secrets. Solo construye y testea el código.
 
 > **Cómo configurar con Wrangler CLI:**
 > ```bash
-> cd uerp/cf-workers/invoice-mailer
+> cd src/cf-workers/invoice-mailer
 > npx wrangler secret put SENDER_EMAIL
 > npx wrangler secret put SENDER_NAME
 > npx wrangler secret put ALLOWED_API_SECRET
@@ -299,5 +299,5 @@ Este workflow no requiere secrets. Solo construye y testea el código.
 4. **GitHub Actions:** agregar todos los secrets y variables de la tabla anterior.
 5. **Deploy Workers** (`deploy-workers.yml`): ejecutar manualmente una vez para deployar `api-proxy` e `invoice-mailer`.
 6. **Copiar la URL del Worker `api-proxy`** → agregarla como secret `VITE_API_URL`.
-7. **Deploy Web** (`deploy-web-cloudflare.yml`): ejecutar manualmente o esperar el próximo push a `main` en `uerp/uerp-web/`.
-8. **Deploy API** (`deploy-api-railway.yml`): ejecutar manualmente o esperar el próximo push a `main` en `uerp/UruErpApp.Api/`.
+7. **Deploy Web** (`deploy-web-cloudflare.yml`): ejecutar manualmente o esperar el próximo push a `main` en `src/uerp-web/`.
+8. **Deploy API** (`deploy-api-railway.yml`): ejecutar manualmente o esperar el próximo push a `main` en `src/UruErpApp.Api/`.

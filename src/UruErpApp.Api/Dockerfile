@@ -3,16 +3,14 @@ FROM mcr.microsoft.com/dotnet/sdk:10.0 AS build
 WORKDIR /repo
 
 # Copy project files first for layer-cache efficiency
-COPY src/UruFacturaSDK/UruFacturaSDK.csproj           src/UruFacturaSDK/
-COPY uerp/UruErpApp.Api/UruErpApp.Api.csproj          uerp/UruErpApp.Api/
+COPY src/UruErpApp.Api/UruErpApp.Api.csproj           src/UruErpApp.Api/
 
-RUN dotnet restore uerp/UruErpApp.Api/UruErpApp.Api.csproj
+RUN dotnet restore src/UruErpApp.Api/UruErpApp.Api.csproj
 
 # Copy full source
 COPY src/ src/
-COPY uerp/UruErpApp.Api/ uerp/UruErpApp.Api/
 
-RUN dotnet publish uerp/UruErpApp.Api/UruErpApp.Api.csproj \
+RUN dotnet publish src/UruErpApp.Api/UruErpApp.Api.csproj \
     --no-restore \
     -c Release \
     -o /app/publish \
