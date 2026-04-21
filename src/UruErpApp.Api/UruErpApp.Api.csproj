@@ -8,10 +8,10 @@
     <PackageReference Include="Aspire.Npgsql.EntityFrameworkCore.PostgreSQL" Version="13.2.2" />
     <PackageReference Include="AWSSDK.S3" Version="4.0.21.2" />
     <PackageReference Include="Microsoft.AspNetCore.Authentication.JwtBearer" Version="10.0.6" />
-    <PackageReference Include="Microsoft.EntityFrameworkCore.Design" Version="10.0.6">
-      <PrivateAssets>all</PrivateAssets>
-      <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
-    </PackageReference>
     <PackageReference Include="UruFacturaSDK" Version="1.0.0" />
+  </ItemGroup>
+  <ItemGroup>
+    <!-- SQL migration files are embedded so they are available inside the Docker image. -->
+    <EmbeddedResource Include="Migrations\*.sql" />
   </ItemGroup>
 </Project>

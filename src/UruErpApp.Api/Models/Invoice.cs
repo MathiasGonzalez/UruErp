@@ -2,8 +2,8 @@ namespace UruErpApp.Api.Models;
 
 public class Invoice
 {
-    public int Id { get; set; }
-    public int TenantId { get; set; }
+    public Guid Id { get; set; } = Guid.CreateVersion7();
+    public Guid TenantId { get; set; }
     public Tenant Tenant { get; set; } = null!;
     public int TipoCfe { get; set; }
     public long Numero { get; set; }

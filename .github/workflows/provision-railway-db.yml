@@ -46,6 +46,22 @@ jobs:
       contents: read
 
     steps:
+      - name: Validate required secrets
+        env:
+          RAILWAY_TOKEN: ${{ secrets.RAILWAY_TOKEN }}
+          RAILWAY_PROJECT_ID: ${{ secrets.RAILWAY_PROJECT_ID }}
+          POSTGRES_PASSWORD: ${{ secrets.POSTGRES_PASSWORD }}
+        run: |
+          missing=""
+          [ -z "$RAILWAY_TOKEN" ]      && missing="$missing RAILWAY_TOKEN"
+          [ -z "$RAILWAY_PROJECT_ID" ] && missing="$missing RAILWAY_PROJECT_ID"
+          [ -z "$POSTGRES_PASSWORD" ]  && missing="$missing POSTGRES_PASSWORD"
+          if [ -n "$missing" ]; then
+            echo "❌ Missing required secrets:$missing"
+            exit 1
+          fi
+          echo "✅ All required secrets are present."
+
       - name: Install Railway CLI
         run: npm install -g @railway/cli
 

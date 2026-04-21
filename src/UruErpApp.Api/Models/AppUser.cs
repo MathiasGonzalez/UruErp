@@ -2,8 +2,8 @@ namespace UruErpApp.Api.Models;
 
 public class AppUser
 {
-    public int Id { get; set; }
-    public int TenantId { get; set; }
+    public Guid Id { get; set; } = Guid.CreateVersion7();
+    public Guid TenantId { get; set; }
     public Tenant Tenant { get; set; } = null!;
     public string Email { get; set; } = string.Empty;
     public string PasswordHash { get; set; } = string.Empty;

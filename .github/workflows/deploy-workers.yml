@@ -28,9 +28,31 @@ on:
   workflow_dispatch:
 
 jobs:
+  # ── Validate required secrets before doing any work ─────────────────────────
+  validate-secrets:
+    name: Validate required secrets
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check secrets
+        env:
+          CF_API_TOKEN: ${{ secrets.CF_API_TOKEN }}
+          CF_ACCOUNT_ID: ${{ secrets.CF_ACCOUNT_ID }}
+          UPSTREAM_API_URL: ${{ secrets.UPSTREAM_API_URL }}
+        run: |
+          missing=""
+          [ -z "$CF_API_TOKEN" ]     && missing="$missing CF_API_TOKEN"
+          [ -z "$CF_ACCOUNT_ID" ]    && missing="$missing CF_ACCOUNT_ID"
+          [ -z "$UPSTREAM_API_URL" ] && missing="$missing UPSTREAM_API_URL"
+          if [ -n "$missing" ]; then
+            echo "❌ Missing required secrets:$missing"
+            exit 1
+          fi
+          echo "✅ All required secrets are present."
+
   # ── api-proxy: Hono reverse-proxy Worker ────────────────────────────────────
   deploy-api-proxy:
     name: Deploy api-proxy Worker
+    needs: [validate-secrets]
     runs-on: ubuntu-latest
     permissions:
       contents: read
@@ -69,6 +91,7 @@ jobs:
   # ── invoice-mailer: MailChannels email Worker ────────────────────────────────
   deploy-invoice-mailer:
     name: Deploy invoice-mailer Worker
+    needs: [validate-secrets]
     runs-on: ubuntu-latest
     permissions:
       contents: read
