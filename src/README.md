@@ -45,9 +45,9 @@ Permite a múltiples empresas emitir, firmar y gestionar sus CFE (Comprobantes F
 ## Estructura
 
 ```
-uerp/
-├── UruErpApp.AppHost/     ← orquestador Aspire (solo para desarrollo local)
-├── UruErpApp.Api/         ← API REST multi-tenant con auth JWT
+src/
+├── UruErpApp.AppHost/    ← orquestador Aspire (solo para desarrollo local)
+├── UruErpApp.Api/        ← API REST multi-tenant con auth JWT
 │   └── Dockerfile        ← imagen para Railway
 ├── uerp-web/             ← SPA React + Vite
 ├── cf-workers/
@@ -85,7 +85,7 @@ uerp/
 ```bash
 # Generar certificado autofirmado (solo para pruebas locales)
 openssl req -x509 -newkey rsa:2048 -keyout key.pem -out cert.pem -days 365 -nodes -subj "/CN=demo"
-openssl pkcs12 -export -out uerp/UruErpApp.Api/certs/demo.pfx -inkey key.pem -in cert.pem -passout pass:demo123
+openssl pkcs12 -export -out src/UruErpApp.Api/certs/demo.pfx -inkey key.pem -in cert.pem -passout pass:demo123
 ```
 
 Luego ajusta `UruFactura:PasswordCertificado` en `appsettings.json`.
@@ -93,8 +93,7 @@ Luego ajusta `UruFactura:PasswordCertificado` en `appsettings.json`.
 ### Iniciar
 
 ```bash
-cd uerp
-dotnet run --project UruErpApp.AppHost
+dotnet run --project src/UruErpApp.AppHost
 ```
 
 Aspire levantará PostgreSQL (Docker), la API y el frontend.
@@ -113,7 +112,7 @@ necesita levantar el Worker `api-proxy`.
 2. Agrega un servicio **PostgreSQL** (el plugin oficial de Railway).
 3. Agrega un servicio **Docker** apuntando a este repositorio con:
    - **Root Directory**: `/` (raíz del repo)
-   - **Dockerfile Path**: `uerp/UruErpApp.Api/Dockerfile`
+   - **Dockerfile Path**: `src/UruErpApp.Api/Dockerfile`
 4. Configura las variables de entorno del servicio (ver tabla abajo).
 5. El workflow `.github/workflows/deploy-api-railway.yml` automatiza los despliegues
    con cada push a `main`.
@@ -151,7 +150,7 @@ necesita levantar el Worker `api-proxy`.
 #### api-proxy (gateway Hono)
 
 ```bash
-cd uerp/cf-workers/api-proxy
+cd src/cf-workers/api-proxy
 npm install
 # Editar wrangler.toml: set UPSTREAM_API_URL a la URL de Railway
 npm run deploy
@@ -167,7 +166,7 @@ Variables:
 #### invoice-mailer (email vía MailChannels)
 
 ```bash
-cd uerp/cf-workers/invoice-mailer
+cd src/cf-workers/invoice-mailer
 npm install
 wrangler secret put SENDER_EMAIL
 wrangler secret put SENDER_NAME
@@ -194,8 +193,8 @@ El workflow `.github/workflows/deploy-workers.yml` despliega ambos Workers.
 | Campo | Valor |
 |-------|-------|
 | Framework preset | None (Vite) |
-| Build command | `cd uerp/uerp-web && npm ci && npm run build` |
-| Build output directory | `uerp/uerp-web/dist` |
+| Build command | `cd src/uerp-web && npm ci && npm run build` |
+| Build output directory | `src/uerp-web/dist` |
 | Node.js version | `20` |
 
 ---
@@ -204,10 +203,10 @@ El workflow `.github/workflows/deploy-workers.yml` despliega ambos Workers.
 
 | Workflow | Archivo | Trigger | Descripción |
 |----------|---------|---------|-------------|
-| UruErp CI | `uerp-ci.yml` | push/PR a `main` en `uerp/**` o `src/**` | Build del API .NET y del frontend Vite. No despliega. |
-| Deploy API → Railway | `deploy-api-railway.yml` | push a `main` en `uerp/UruErpApp.Api/**` | Construye imagen Docker, la sube a Docker Hub y hace `railway redeploy`. |
-| Deploy Workers | `deploy-workers.yml` | push a `main` en `uerp/cf-workers/**` | Wrangler deploy de `api-proxy` e `invoice-mailer`. |
-| Deploy Web → Cloudflare | `deploy-web-cloudflare.yml` | push a `main` en `uerp/uerp-web/**` | `npm run build` + `cloudflare/pages-action` para subir `dist/`. |
+| UruErp CI | `uerp-ci.yml` | push/PR a `main` en `src/**` | Build del API .NET y del frontend Vite. No despliega. |
+| Deploy API → Railway | `deploy-api-railway.yml` | push a `main` en `src/UruErpApp.Api/**` | Construye imagen Docker, la sube a Docker Hub y hace `railway redeploy`. |
+| Deploy Workers | `deploy-workers.yml` | push a `main` en `src/cf-workers/**` | Wrangler deploy de `api-proxy` e `invoice-mailer`. |
+| Deploy Web → Cloudflare | `deploy-web-cloudflare.yml` | push a `main` en `src/uerp-web/**` | `npm run build` + `cloudflare/pages-action` para subir `dist/`. |
 | Provision Railway DB | `provision-railway-db.yml` | Manual (one-shot) | Crea servicio `postgres:18-alpine` en Railway. |
 
 ### Secrets necesarios en GitHub
