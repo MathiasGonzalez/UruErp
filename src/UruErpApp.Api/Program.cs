@@ -36,8 +36,8 @@ if (!string.IsNullOrEmpty(databaseUrl))
 }
 else
 {
-    rawConnectionString = builder.Configuration.GetConnectionString("saasdb");
-    builder.AddNpgsqlDbContext<AppDbContext>("saasdb");
+    rawConnectionString = builder.Configuration.GetConnectionString("uruerp");
+    builder.AddNpgsqlDbContext<AppDbContext>("uruerp");
 }
 
 // ── Auth ────────────────────────────────────────────────────────────────────
@@ -95,7 +95,7 @@ if (!string.IsNullOrWhiteSpace(rawConnectionString))
 else
 {
     app.Logger.LogWarning(
-        "No database connection string found (DATABASE_URL env var or 'ConnectionStrings:saasdb' config key). Skipping migrations.");
+        "No database connection string found (DATABASE_URL env var or 'ConnectionStrings:uruerp' config key). Skipping migrations.");
 }
 
 app.UseCors();

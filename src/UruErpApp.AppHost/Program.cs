@@ -5,7 +5,7 @@ var builder = DistributedApplication.CreateBuilder(args);
 var postgres = builder.AddPostgres("postgres")
     .WithPgAdmin();
 
-var saasdb = postgres.AddDatabase("saasdb");
+var uruerp = postgres.AddDatabase("uruerp");
 
 // ── PgBouncer ────────────────────────────────────────────────────────────────
 // Built from the local pgbouncer/ Dockerfile — mirrors the production sidecar.
@@ -15,7 +15,7 @@ var pgEndpoint = postgres.GetEndpoint("tcp");
 
 var pgbouncer = builder.AddDockerfile("pgbouncer", "../../pgbouncer")
     .WithEnvironment("DB_USER", "postgres")
-    .WithEnvironment("DB_NAME", "saasdb")
+    .WithEnvironment("DB_NAME", "uruerp")
     .WithEnvironment("DB_PASSWORD", postgres.Resource.PasswordParameter!)
     .WithEnvironment("SERVER_TLS_SSLMODE", "disable")   // no TLS in local Docker
     .WithEnvironment("POOL_MODE", "transaction")
@@ -32,9 +32,9 @@ var pgbouncer = builder.AddDockerfile("pgbouncer", "../../pgbouncer")
 var pgbEndpoint = pgbouncer.GetEndpoint("tcp");
 
 var api = builder.AddProject<Projects.UruErpApp_Api>("api")
-    .WithEnvironment("ConnectionStrings__saasdb",
+    .WithEnvironment("ConnectionStrings__uruerp",
         ReferenceExpression.Create(
-            $"Host={pgbEndpoint.Property(EndpointProperty.Host)};Port={pgbEndpoint.Property(EndpointProperty.Port)};Database=saasdb;Username=postgres;Password={postgres.Resource.PasswordParameter!}"))
+            $"Host={pgbEndpoint.Property(EndpointProperty.Host)};Port={pgbEndpoint.Property(EndpointProperty.Port)};Database=uruerp;Username=postgres;Password={postgres.Resource.PasswordParameter!}"))
     .WaitFor(pgbouncer);
 
 builder.AddNpmApp("web", "../uerp-web", "dev")
