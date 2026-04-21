@@ -17,6 +17,7 @@ var builder = WebApplication.CreateBuilder(args);
 
 // ── Database ────────────────────────────────────────────────────────────────
 // Railway provides DATABASE_URL; Aspire provides the named connection string.
+string? rawConnectionString;
 var databaseUrl = Environment.GetEnvironmentVariable("DATABASE_URL");
 if (!string.IsNullOrEmpty(databaseUrl))
 {
@@ -36,10 +37,12 @@ if (!string.IsNullOrEmpty(databaseUrl))
         TrustServerCertificate = true
     };
 
-    builder.Services.AddDbContext<AppDbContext>(opts => opts.UseNpgsql(connStrBuilder.ConnectionString));
+    rawConnectionString = connStrBuilder.ConnectionString;
+    builder.Services.AddDbContext<AppDbContext>(opts => opts.UseNpgsql(rawConnectionString));
 }
 else
 {
+    rawConnectionString = builder.Configuration.GetConnectionString("saasdb");
     builder.AddNpgsqlDbContext<AppDbContext>("saasdb");
 }
 
@@ -91,14 +94,15 @@ builder.Services.AddCors(o =>
 
 var app = builder.Build();
 
-// ── Schema migration ────────────────────────────────────────────────────────
-using (var scope = app.Services.CreateScope())
+// ── SQL migrations ──────────────────────────────────────────────────────────
+if (!string.IsNullOrWhiteSpace(rawConnectionString))
 {
-    var db = scope.ServiceProvider.GetRequiredService<AppDbContext>();
-    if (app.Environment.IsDevelopment())
-        await db.Database.EnsureCreatedAsync();
-    else
-        await db.Database.MigrateAsync();
+    var migrationLogger = app.Services.GetRequiredService<ILogger<Program>>();
+    await MigrationRunner.RunAsync(rawConnectionString, migrationLogger);
+}
+else
+{
+    app.Logger.LogWarning("No connection string available; skipping migrations.");
 }
 
 app.UseCors();
@@ -110,8 +114,8 @@ static string Slugify(string input) =>
     System.Text.RegularExpressions.Regex.Replace(
         input.ToLowerInvariant().Trim(), @"[^a-z0-9]+", "-").Trim('-');
 
-static int GetTenantId(HttpContext ctx) =>
-    int.Parse(ctx.User.FindFirst("tenantId")!.Value);
+static Guid GetTenantId(HttpContext ctx) =>
+    Guid.Parse(ctx.User.FindFirst("tenantId")!.Value);
 
 // ── Auth Endpoints ───────────────────────────────────────────────────────────
 
@@ -374,7 +378,7 @@ app.MapPost("/api/invoices", async (CreateInvoiceRequest req, AppDbContext db, I
 }).RequireAuthorization();
 
 // ── Download PDF (from R2 if stored, otherwise regenerate) ────────────────
-app.MapGet("/api/invoices/{id:int}/pdf", async (int id, AppDbContext db, IConfiguration config, HttpContext ctx,
+app.MapGet("/api/invoices/{id:guid}/pdf", async (Guid id, AppDbContext db, IConfiguration config, HttpContext ctx,
     IServiceProvider services) =>
 {
     var tenantId = GetTenantId(ctx);
@@ -443,7 +447,7 @@ app.MapGet("/api/invoices/{id:int}/pdf", async (int id, AppDbContext db, IConfig
 }).RequireAuthorization();
 
 // ── R2 download URLs ──────────────────────────────────────────────────────
-app.MapGet("/api/invoices/{id:int}/r2-urls", async (int id, AppDbContext db, HttpContext ctx,
+app.MapGet("/api/invoices/{id:guid}/r2-urls", async (Guid id, AppDbContext db, HttpContext ctx,
     IServiceProvider services) =>
 {
     var tenantId = GetTenantId(ctx);

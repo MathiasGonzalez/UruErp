@@ -11,9 +11,19 @@ public class AppDbContext(DbContextOptions<AppDbContext> options) : DbContext(op
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
+        // IDs are generated in C# with Guid.CreateVersion7(); the DB default
+        // (gen_random_uuid()) in the SQL migration is a safety net only.
+        modelBuilder.Entity<Tenant>()
+            .Property(t => t.Id)
+            .ValueGeneratedNever();
+
         modelBuilder.Entity<Tenant>()
             .HasIndex(t => t.Slug)
             .IsUnique();
+
+        modelBuilder.Entity<AppUser>()
+            .Property(u => u.Id)
+            .ValueGeneratedNever();
 
         modelBuilder.Entity<AppUser>()
             .HasIndex(u => u.Email)
@@ -23,6 +33,15 @@ public class AppDbContext(DbContextOptions<AppDbContext> options) : DbContext(op
             .HasOne(u => u.Tenant)
             .WithMany(t => t.Users)
             .HasForeignKey(u => u.TenantId);
+
+        // Invoices are partitioned by FechaEmision in PostgreSQL.
+        // The partition key must be part of the primary key.
+        modelBuilder.Entity<Invoice>()
+            .HasKey(i => new { i.Id, i.FechaEmision });
+
+        modelBuilder.Entity<Invoice>()
+            .Property(i => i.Id)
+            .ValueGeneratedNever();
 
         modelBuilder.Entity<Invoice>()
             .HasOne(i => i.Tenant)

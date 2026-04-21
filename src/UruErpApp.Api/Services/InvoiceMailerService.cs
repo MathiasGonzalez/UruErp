@@ -50,7 +50,7 @@ public record EmailPayload(
     string TenantName,
     string RecipientEmail,
     string RecipientName,
-    int    InvoiceId,
+    Guid   InvoiceId,
     long   InvoiceNumber,
     int    TipoCfe,
     string TipoCfeLabel,
