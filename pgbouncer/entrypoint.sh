@@ -41,8 +41,11 @@ DEFAULT_POOL_SIZE="${DEFAULT_POOL_SIZE:-20}"
 SERVER_TLS_SSLMODE="${SERVER_TLS_SSLMODE:-require}"
 LISTEN_PORT="${LISTEN_PORT:-5432}"
 
-# ── Generate userlist.txt (MD5 auth) ────────────────────────────────────────
-# PgBouncer expects: "username" "md5<md5(password+username)>"
+# ── Generate userlist.txt (MD5 auth for PgBouncer ↔ client) ─────────────────
+# PgBouncer requires md5 format in userlist.txt: "user" "md5<md5(password+user)>"
+# NOTE: This is PgBouncer's own client-auth mechanism, distinct from the
+# upstream PostgreSQL connection. Configure your PostgreSQL server to use
+# SCRAM-SHA-256 for actual DB connections (pg_hba.conf scram-sha-256).
 MD5HASH=$(printf '%s' "${DB_PASSWORD}${DB_USER}" | md5sum | cut -d' ' -f1)
 printf '"%s" "md5%s"\n' "$DB_USER" "$MD5HASH" > /etc/pgbouncer/userlist.txt
 

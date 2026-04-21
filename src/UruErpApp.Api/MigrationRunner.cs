@@ -73,8 +73,8 @@ public static class MigrationRunner
                 await using (var cmd = conn.CreateCommand())
                 {
                     cmd.Transaction  = tx;
-                    cmd.CommandText  = "INSERT INTO schema_migrations (filename) VALUES ($1)";
-                    cmd.Parameters.AddWithValue(filename);
+                    cmd.CommandText  = "INSERT INTO schema_migrations (filename) VALUES (@filename)";
+                    cmd.Parameters.AddWithValue("filename", filename);
                     await cmd.ExecuteNonQueryAsync(ct);
                 }
 

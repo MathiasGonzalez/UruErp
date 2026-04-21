@@ -102,7 +102,8 @@ if (!string.IsNullOrWhiteSpace(rawConnectionString))
 }
 else
 {
-    app.Logger.LogWarning("No connection string available; skipping migrations.");
+    app.Logger.LogWarning(
+        "No database connection string found (DATABASE_URL env var or 'ConnectionStrings:saasdb' config key). Skipping migrations.");
 }
 
 app.UseCors();
