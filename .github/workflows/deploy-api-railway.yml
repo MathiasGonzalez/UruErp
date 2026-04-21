@@ -48,9 +48,35 @@ env:
   REGISTRY: docker.io
 
 jobs:
+  # ── Validate required secrets before doing any work ─────────────────────────
+  validate-secrets:
+    name: Validate required secrets
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check secrets
+        env:
+          DOCKER_USERNAME: ${{ secrets.DOCKER_USERNAME }}
+          DOCKER_PASSWORD: ${{ secrets.DOCKER_PASSWORD }}
+          RAILWAY_TOKEN: ${{ secrets.RAILWAY_TOKEN }}
+          RAILWAY_SERVICE_ID: ${{ secrets.RAILWAY_SERVICE_ID }}
+          RAILWAY_PGBOUNCER_SERVICE_ID: ${{ secrets.RAILWAY_PGBOUNCER_SERVICE_ID }}
+        run: |
+          missing=""
+          [ -z "$DOCKER_USERNAME" ]              && missing="$missing DOCKER_USERNAME"
+          [ -z "$DOCKER_PASSWORD" ]              && missing="$missing DOCKER_PASSWORD"
+          [ -z "$RAILWAY_TOKEN" ]                && missing="$missing RAILWAY_TOKEN"
+          [ -z "$RAILWAY_SERVICE_ID" ]           && missing="$missing RAILWAY_SERVICE_ID"
+          [ -z "$RAILWAY_PGBOUNCER_SERVICE_ID" ] && missing="$missing RAILWAY_PGBOUNCER_SERVICE_ID"
+          if [ -n "$missing" ]; then
+            echo "❌ Missing required secrets:$missing"
+            exit 1
+          fi
+          echo "✅ All required secrets are present."
+
   # ── Build & push API image ──────────────────────────────────────────────────
   build-api:
     name: Build & push API image
+    needs: [validate-secrets]
     runs-on: ubuntu-latest
     permissions:
       contents: read
@@ -94,6 +120,7 @@ jobs:
   # ── Build & push PgBouncer image ────────────────────────────────────────────
   build-pgbouncer:
     name: Build & push PgBouncer image
+    needs: [validate-secrets]
     runs-on: ubuntu-latest
     permissions:
       contents: read
